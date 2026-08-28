@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="lo">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ສ້າງອາລະບຳໃໝ່ — ອາລະບຳສົດ</title>
+<title>Create New Album — Photo Live</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -31,23 +31,23 @@
 </head>
 <body>
 
-<header><h1>ສ້າງອາລະບຳໃໝ່</h1></header>
+<header><h1>Create New Album</h1></header>
 
 <main>
   <div class="card">
-    <label for="eventName">ຊື່ອາລະບຳ</label>
-    <input id="eventName" placeholder="ເຊັ່ນ: ງານແຕ່ງ ສຸກ ແລະ ນ້ອຍ, ງານບຸນວັນເກີດ, ທ່ຽວແຄມທະເລ">
-    <button class="btn" id="createBtn" onclick="createAlbum()">ສ້າງອາລະບຳ + ສ້າງ QR</button>
+    <label for="eventName">Album Name</label>
+    <input id="eventName" placeholder="e.g. Souk & Noy's Wedding, Birthday Party, Beach Trip">
+    <button class="btn" id="createBtn" onclick="createAlbum()">Create Album + Generate QR</button>
   </div>
 
   <div class="card result" id="resultCard">
     <div class="qr-block">
-      <h3>QR ສຳລັບຊ່າງພາບ</h3>
+      <h3>QR for Photographer</h3>
       <p id="captureUrl"></p>
       <div class="qr-canvas" id="qrCapture"></div>
     </div>
     <div class="qr-block">
-      <h3>QR ສຳລັບແຂກ (ເບິ່ງ-ໂຫຼດຮູບ)</h3>
+      <h3>QR for Guests (view & download)</h3>
       <p id="galleryUrl"></p>
       <div class="qr-canvas" id="qrGallery"></div>
     </div>
@@ -69,10 +69,10 @@ function slugify(name) {
 
 async function createAlbum() {
   const name = document.getElementById('eventName').value.trim();
-  if (!name) { alert('ໃສ່ຊື່ອາລະບຳກ່ອນ'); return; }
+  if (!name) { alert('Please enter an album name'); return; }
 
   const btn = document.getElementById('createBtn');
-  btn.disabled = true; btn.textContent = 'ກຳລັງສ້າງ...';
+  btn.disabled = true; btn.textContent = 'Creating...';
 
   try {
     const slug = slugify(name);
@@ -92,9 +92,9 @@ async function createAlbum() {
     new QRCode(document.getElementById('qrCapture'), { text: captureUrl, width: 180, height: 180 });
     new QRCode(document.getElementById('qrGallery'), { text: galleryUrl, width: 180, height: 180 });
   } catch (err) {
-    alert('ຜິດພາດ: ' + err.message);
+    alert('Error: ' + err.message);
   } finally {
-    btn.disabled = false; btn.textContent = 'ສ້າງອາລະບຳ + ສ້າງ QR';
+    btn.disabled = false; btn.textContent = 'Create Album + Generate QR';
   }
 }
 </script>

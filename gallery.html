@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="lo">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>ອາລະບຳຮູບພາບ</title>
+<title>Photo Album</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -46,9 +46,9 @@
 <body>
 
 <header>
-  <div class="eyebrow">ອາລະບຳສົດ</div>
-  <h1 id="eventTitle">ອາລະບຳຮູບພາບ</h1>
-  <p>ຮູບຈະອັບເດດອັດຕະໂນມັດ — ແຕະຮູບເພື່ອຂະຫຍາຍ ຫຼືໂຫຼດ</p>
+  <div class="eyebrow">Photo Live</div>
+  <h1 id="eventTitle">Photo Album</h1>
+  <p>Photos update automatically — tap a photo to enlarge or download</p>
 </header>
 
 <main>
@@ -56,14 +56,14 @@
   <div id="results" class="results"></div>
   <div id="emptyState" style="display:none" class="empty">
     <div class="icon">📷</div>
-    <div>ຍັງບໍ່ມີຮູບ — ລໍຖ້າຊ່າງພາບອັບຮູບໃໝ່</div>
+    <div>No photos yet — waiting for the photographer to upload</div>
   </div>
 </main>
 
 <div id="lightbox">
   <span class="close" onclick="closeLightbox()">✕</span>
   <img id="lightboxImg" src="">
-  <a id="lightboxDl" download>ໂຫຼດຮູບນີ້</a>
+  <a id="lightboxDl" download>Download this photo</a>
 </div>
 
 <script>
@@ -78,7 +78,7 @@ let eventId = null;
 let shownIds = new Set();
 
 if (!eventSlug) {
-  document.body.innerHTML = '<main style="padding:40px;text-align:center;">ລິ້ງນີ້ບໍ່ຖືກຕ້ອງ — ຂາດລະຫັດງານ</main>';
+  document.body.innerHTML = '<main style="padding:40px;text-align:center;">Invalid link — missing album code</main>';
 } else {
   init();
 }
@@ -88,13 +88,13 @@ async function init() {
     .from('events').select('id, name').eq('slug', eventSlug).single();
   if (error || !event) {
     document.getElementById('emptyState').style.display = 'block';
-    document.getElementById('emptyState').querySelector('div:last-child').textContent = 'ບໍ່ພົບອາລະບຳນີ້';
+    document.getElementById('emptyState').querySelector('div:last-child').textContent = 'Album not found';
     return;
   }
   eventId = event.id;
   document.getElementById('eventTitle').textContent = event.name;
   await loadPhotos();
-  setInterval(loadPhotos, 15000); // ອັບເດດອັດຕະໂນມັດທຸກ 15 ວິນາທີ
+  setInterval(loadPhotos, 15000); // Auto-refresh every 15 seconds
 }
 
 async function loadPhotos() {
@@ -112,7 +112,7 @@ async function loadPhotos() {
     return;
   }
   document.getElementById('emptyState').style.display = 'none';
-  document.getElementById('foundCount').innerHTML = `ທັງໝົດ <b>${photos.length}</b> ຮູບ`;
+  document.getElementById('foundCount').innerHTML = `<b>${photos.length}</b> photos total`;
 
   const resultsEl = document.getElementById('results');
   const { data: bucketUrlData } = sb.storage.from('wedding-photos').getPublicUrl('');
