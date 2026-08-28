@@ -37,7 +37,7 @@
   <div class="card">
     <label for="eventName">ຊື່ງານ</label>
     <input id="eventName" placeholder="ເຊັ່ນ: ງານແຕ່ງ ສຸກ ແລະ ນ້ອຍ">
-    <button class="btn" id="createBtn" onclick="createEvent()">ສ້າງງານ + ສ້າງ QR</button>
+    <button class="btn" id="createBtn" onclick="createWeddingEvent()">ສ້າງງານ + ສ້າງ QR</button>
   </div>
 
   <div class="card result" id="resultCard">
@@ -67,7 +67,7 @@ function slugify(name) {
   return `${base || "event"}-${rand}`;
 }
 
-async function createEvent() {
+async function createWeddingEvent() {
   const name = document.getElementById('eventName').value.trim();
   if (!name) { alert('ໃສ່ຊື່ງານກ່ອນ'); return; }
 
