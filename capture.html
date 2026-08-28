@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ໂໝດຊ່າງພາບ — ຮູບງານແຕ່ງ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#1F2733; --gold:#C9A356; --rose:#C97B84;
+    --paper:#FBF9F6; --line:#E7E1D8; --ok:#5B8A6B; --err:#B4534C;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+  header{background:var(--ink);color:var(--paper);padding:28px 20px 22px;text-align:center;}
+  header .eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px;}
+  header h1{font-family:'Fraunces',serif;font-weight:600;font-size:26px;margin:0;}
+  header .counter{font-family:'Fraunces',serif;font-size:15px;color:#cfcabf;margin-top:8px;}
+  header .counter b{color:var(--gold);font-size:20px;}
+
+  main{max-width:520px;margin:0 auto;padding:24px 18px 60px;}
+
+  #eventSetup{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:20px;}
+  #eventSetup label{font-size:13px;color:#6b6459;display:block;margin-bottom:6px;}
+  #eventSetup input{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;font-size:15px;font-family:'Inter',sans-serif;}
+  #eventSetup .hint{font-size:12px;color:#8a8375;margin-top:8px;}
+
+  .capture-wrap{text-align:center;margin:28px 0 8px;}
+  .shutter{
+    width:104px;height:104px;border-radius:50%;border:4px solid var(--ink);
+    background:var(--paper);display:inline-flex;align-items:center;justify-content:center;
+    cursor:pointer;position:relative;
+  }
+  .shutter::after{content:"";width:80px;height:80px;border-radius:50%;background:var(--gold);}
+  .shutter:active::after{background:var(--rose);}
+  .shutter-label{font-size:13px;color:#6b6459;margin-top:12px;letter-spacing:.04em;}
+  input[type=file]{display:none;}
+
+  .divider{display:flex;align-items:center;gap:10px;margin:26px 0;color:#a39c8d;font-size:12px;}
+  .divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line);}
+
+  .import-btn{
+    display:block;width:100%;background:#fff;border:1.5px dashed var(--gold);color:var(--ink);
+    padding:16px;border-radius:12px;font-size:14px;font-weight:600;text-align:center;cursor:pointer;
+  }
+  .import-btn .sub{display:block;font-weight:400;font-size:12px;color:#8a8375;margin-top:4px;}
+  .progress{text-align:center;font-size:13px;color:var(--rose);margin-top:10px;font-weight:600;}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:28px;}
+  .thumb{position:relative;aspect-ratio:1;border-radius:8px;overflow:hidden;background:#eee;border:1px solid var(--line);}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .badge{position:absolute;bottom:4px;right:4px;font-size:10px;padding:2px 6px;border-radius:20px;background:rgba(0,0,0,.65);color:#fff;}
+  .badge.ok{background:var(--ok);}
+  .badge.err{background:var(--err);}
+
+  .empty{text-align:center;color:#a39c8d;font-size:14px;margin-top:40px;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Wedding Photo Live</div>
+  <h1 id="eventTitle">ໂໝດຊ່າງພາບ</h1>
+  <div class="counter">ຖ່າຍແລ້ວ <b id="countNum">0</b> ຮູບ</div>
+</header>
+
+<main>
+  <div id="eventSetup">
+    <label for="eventSlug">ລະຫັດງານ (event slug)</label>
+    <input id="eventSlug" placeholder="ເຊັ່ນ: souk-noy-2026-abcde" autocomplete="off">
+    <div class="hint">ເອົາລະຫັດນີ້ຈາກໜ້າ admin.html ຫຼັງສ້າງງານ. ຄ້າງໄວ້ໃນເຄື່ອງນີ້ອັດຕະໂນມັດ.</div>
+  </div>
+
+  <div class="capture-wrap">
+    <label class="shutter" for="cameraInput"></label>
+    <div class="shutter-label">ແຕະເພື່ອຖ່າຍຮູບ</div>
+    <input type="file" id="cameraInput" accept="image/*" capture="environment">
+  </div>
+
+  <div class="divider">ຫຼື</div>
+
+  <label class="import-btn" for="galleryInput">
+    📥 ນຳເຂົ້າຮູບຈາກກ້ອງ Nikon (SnapBridge)
+    <span class="sub">ເລືອກຫຼາຍຮູບພ້ອມກັນຈາກຄັງຮູບມືຖື</span>
+  </label>
+  <input type="file" id="galleryInput" accept="image/*" multiple>
+  <div id="progress" class="progress" style="display:none"></div>
+
+  <div id="grid" class="grid"></div>
+  <div id="emptyMsg" class="empty">ຍັງບໍ່ມີຮູບ — ແຕະປຸ່ມຂ້າງເທິງເພື່ອເລີ່ມຖ່າຍ</div>
+</main>
+
+<script>
+const SUPABASE_URL = "https://uaqupfpuvcsmomlezcxc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhcXVwZnB1dmNzbW9tbGV6Y3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjkwNTIsImV4cCI6MjEwMzMwNTA1Mn0.3_2sp3Icqqg5VAJ5YiJdM0NCJ6IFldIwwMZGx6y_gXg";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const params = new URLSearchParams(location.search);
+const slugInput = document.getElementById('eventSlug');
+const savedSlug = params.get('event') || localStorage.getItem('wp_event_slug') || '';
+slugInput.value = savedSlug;
+slugInput.addEventListener('change', () => localStorage.setItem('wp_event_slug', slugInput.value.trim()));
+
+let count = 0;
+const grid = document.getElementById('grid');
+const emptyMsg = document.getElementById('emptyMsg');
+const countNum = document.getElementById('countNum');
+
+let eventIdCache = null;
+
+async function getEventId(slug) {
+  if (eventIdCache) return eventIdCache;
+  const { data: event, error } = await supabase
+    .from('events').select('id').eq('slug', slug).single();
+  if (error || !event) throw new Error('ບໍ່ພົບງານນີ້ — ກວດລະຫັດງານ');
+  eventIdCache = event.id;
+  return eventIdCache;
+}
+
+async function uploadOneFile(file, slug, tile) {
+  const eventId = await getEventId(slug);
+  const path = `${slug}/${crypto.randomUUID()}.jpg`;
+  const { error: upErr } = await supabase.storage
+    .from('wedding-photos').upload(path, file, { contentType: file.type || 'image/jpeg' });
+  if (upErr) throw upErr;
+
+  const { error: insErr } = await supabase
+    .from('photos').insert({ event_id: eventId, storage_path: path });
+  if (insErr) throw insErr;
+
+  if (tile) { tile.badge.textContent = '✓ ອັບແລ້ວ'; tile.badge.className = 'badge ok'; }
+  count++; countNum.textContent = count;
+}
+
+// ຖ່າຍທີລະຮູບຈາກກ້ອງມືຖື
+document.getElementById('cameraInput').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (!file) return;
+
+  const slug = slugInput.value.trim();
+  if (!slug) { alert('ກະລຸນາໃສ່ລະຫັດງານກ່ອນ'); return; }
+
+  emptyMsg.style.display = 'none';
+  const tile = addTile(URL.createObjectURL(file), 'ກຳລັງອັບ...');
+  try {
+    await uploadOneFile(file, slug, tile);
+  } catch (err) {
+    console.error(err);
+    tile.badge.textContent = 'ຜິດພາດ';
+    tile.badge.className = 'badge err';
+  }
+});
+
+// ນຳເຂົ້າຫຼາຍຮູບພ້ອມກັນຈາກຄັງຮູບ (ຮູບຈາກ Nikon ຜ່ານ SnapBridge)
+document.getElementById('galleryInput').addEventListener('change', async (e) => {
+  const files = Array.from(e.target.files);
+  e.target.value = '';
+  if (files.length === 0) return;
+
+  const slug = slugInput.value.trim();
+  if (!slug) { alert('ກະລຸນາໃສ່ລະຫັດງານກ່ອນ'); return; }
+
+  emptyMsg.style.display = 'none';
+  const progressEl = document.getElementById('progress');
+  progressEl.style.display = 'block';
+
+  let done = 0, failed = 0;
+  for (const file of files) {
+    progressEl.textContent = `ກຳລັງອັບ ${done + failed + 1}/${files.length}...`;
+    const tile = addTile(URL.createObjectURL(file), '...');
+    try {
+      await uploadOneFile(file, slug, tile);
+      done++;
+    } catch (err) {
+      console.error(err);
+      tile.badge.textContent = 'ຜິດພາດ';
+      tile.badge.className = 'badge err';
+      failed++;
+    }
+  }
+  progressEl.textContent = failed > 0
+    ? `ສຳເລັດ ${done} ຮູບ, ຜິດພາດ ${failed} ຮູບ`
+    : `✓ ອັບຄົບແລ້ວ ${done} ຮູບ`;
+  setTimeout(() => { progressEl.style.display = 'none'; }, 4000);
+});
+
+function addTile(src, badgeText) {
+  const div = document.createElement('div');
+  div.className = 'thumb';
+  div.innerHTML = `<img src="${src}"><span class="badge">${badgeText}</span>`;
+  grid.prepend(div);
+  return { el: div, badge: div.querySelector('.badge') };
+}
+</script>
+</body>
+</html>

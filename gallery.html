@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="lo">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>ຮູບງານແຕ່ງ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --ink:#1F2733; --gold:#C9A356; --rose:#C97B84;
+    --paper:#FBF9F6; --line:#E7E1D8;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
+  header{background:linear-gradient(160deg,var(--ink) 0%,#33202A 100%);color:var(--paper);padding:32px 20px 26px;text-align:center;}
+  header .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+  header h1{font-family:'Fraunces',serif;font-weight:600;font-size:26px;margin:0 0 6px;}
+  header p{font-size:13px;color:#d8cfc4;margin:0;}
+
+  main{max-width:640px;margin:0 auto;padding:22px 14px 60px;}
+
+  .found-count{text-align:center;font-family:'Fraunces',serif;font-size:14px;color:#8a8375;margin-bottom:16px;}
+  .found-count b{color:var(--rose);}
+
+  .results{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+  .card{position:relative;border-radius:10px;overflow:hidden;background:#eee;border:1px solid var(--line);aspect-ratio:1;}
+  .card img{width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;}
+  .card a.dl{position:absolute;bottom:4px;right:4px;background:rgba(31,39,51,.75);color:#fff;font-size:10px;padding:4px 7px;border-radius:20px;text-decoration:none;}
+
+  .empty{text-align:center;margin-top:48px;color:#6b6459;}
+  .empty .icon{font-size:34px;margin-bottom:10px;}
+
+  .loadmore{display:block;margin:22px auto 0;background:#fff;border:1px solid var(--line);color:var(--ink);
+    padding:11px 22px;border-radius:30px;font-size:14px;font-weight:600;cursor:pointer;}
+
+  /* lightbox */
+  #lightbox{display:none;position:fixed;inset:0;background:rgba(15,15,15,.92);z-index:50;
+    align-items:center;justify-content:center;flex-direction:column;padding:20px;}
+  #lightbox img{max-width:100%;max-height:78vh;border-radius:8px;}
+  #lightbox a{margin-top:16px;background:var(--rose);color:#fff;padding:12px 26px;border-radius:30px;text-decoration:none;font-weight:600;font-size:14px;}
+  #lightbox .close{position:absolute;top:18px;right:20px;color:#fff;font-size:28px;cursor:pointer;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="eyebrow">Wedding Photo Live</div>
+  <h1 id="eventTitle">ຮູບງານແຕ່ງ</h1>
+  <p>ຮູບຈະອັບເດດອັດຕະໂນມັດໃນລະຫວ່າງງານ — ແຕະຮູບເພື່ອໂຫຼດ</p>
+</header>
+
+<main>
+  <div id="foundCount" class="found-count"></div>
+  <div id="results" class="results"></div>
+  <div id="emptyState" style="display:none" class="empty">
+    <div class="icon">📷</div>
+    <div>ຍັງບໍ່ມີຮູບ — ລໍຖ້າຊ່າງພາບອັບຮູບໃໝ່</div>
+  </div>
+</main>
+
+<div id="lightbox">
+  <span class="close" onclick="closeLightbox()">✕</span>
+  <img id="lightboxImg" src="">
+  <a id="lightboxDl" download>ໂຫຼດຮູບນີ້</a>
+</div>
+
+<script>
+const SUPABASE_URL = "https://uaqupfpuvcsmomlezcxc.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhcXVwZnB1dmNzbW9tbGV6Y3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjkwNTIsImV4cCI6MjEwMzMwNTA1Mn0.3_2sp3Icqqg5VAJ5YiJdM0NCJ6IFldIwwMZGx6y_gXg";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+const params = new URLSearchParams(location.search);
+const eventSlug = params.get('event');
+
+let eventId = null;
+let shownIds = new Set();
+
+if (!eventSlug) {
+  document.body.innerHTML = '<main style="padding:40px;text-align:center;">ລິ້ງນີ້ບໍ່ຖືກຕ້ອງ — ຂາດລະຫັດງານ</main>';
+} else {
+  init();
+}
+
+async function init() {
+  const { data: event, error } = await supabase
+    .from('events').select('id, name').eq('slug', eventSlug).single();
+  if (error || !event) {
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('emptyState').querySelector('div:last-child').textContent = 'ບໍ່ພົບງານນີ້';
+    return;
+  }
+  eventId = event.id;
+  document.getElementById('eventTitle').textContent = event.name;
+  await loadPhotos();
+  setInterval(loadPhotos, 15000); // ອັບເດດອັດຕະໂນມັດທຸກ 15 ວິນາທີ
+}
+
+async function loadPhotos() {
+  const { data: photos, error } = await supabase
+    .from('photos')
+    .select('id, storage_path, uploaded_at')
+    .eq('event_id', eventId)
+    .order('uploaded_at', { ascending: false })
+    .limit(300);
+
+  if (error || !photos) return;
+
+  if (photos.length === 0) {
+    document.getElementById('emptyState').style.display = 'block';
+    return;
+  }
+  document.getElementById('emptyState').style.display = 'none';
+  document.getElementById('foundCount').innerHTML = `ທັງໝົດ <b>${photos.length}</b> ຮູບ`;
+
+  const resultsEl = document.getElementById('results');
+  const { data: bucketUrlData } = supabase.storage.from('wedding-photos').getPublicUrl('');
+  const baseUrl = bucketUrlData.publicUrl.replace(/\/$/, '');
+
+  photos.forEach(p => {
+    if (shownIds.has(p.id)) return;
+    shownIds.add(p.id);
+    const url = `${baseUrl}/${p.storage_path}`;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<img src="${url}" loading="lazy" onclick="openLightbox('${url}')"><a class="dl" href="${url}" download>⬇</a>`;
+    resultsEl.appendChild(card);
+  });
+}
+
+function openLightbox(url) {
+  document.getElementById('lightboxImg').src = url;
+  document.getElementById('lightboxDl').href = url;
+  document.getElementById('lightbox').style.display = 'flex';
+}
+function closeLightbox() {
+  document.getElementById('lightbox').style.display = 'none';
+}
+</script>
+</body>
+</html>
