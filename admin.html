@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ສ້າງງານໃໝ່ — Wedding Photo Live</title>
+<title>ສ້າງອາລະບຳໃໝ່ — ອາລະບຳສົດ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -31,13 +31,13 @@
 </head>
 <body>
 
-<header><h1>ສ້າງງານແຕ່ງໃໝ່</h1></header>
+<header><h1>ສ້າງອາລະບຳໃໝ່</h1></header>
 
 <main>
   <div class="card">
-    <label for="eventName">ຊື່ງານ</label>
-    <input id="eventName" placeholder="ເຊັ່ນ: ງານແຕ່ງ ສຸກ ແລະ ນ້ອຍ">
-    <button class="btn" id="createBtn" onclick="createWeddingEvent()">ສ້າງງານ + ສ້າງ QR</button>
+    <label for="eventName">ຊື່ອາລະບຳ</label>
+    <input id="eventName" placeholder="ເຊັ່ນ: ງານແຕ່ງ ສຸກ ແລະ ນ້ອຍ, ງານບຸນວັນເກີດ, ທ່ຽວແຄມທະເລ">
+    <button class="btn" id="createBtn" onclick="createAlbum()">ສ້າງອາລະບຳ + ສ້າງ QR</button>
   </div>
 
   <div class="card result" id="resultCard">
@@ -67,9 +67,9 @@ function slugify(name) {
   return `${base || "event"}-${rand}`;
 }
 
-async function createWeddingEvent() {
+async function createAlbum() {
   const name = document.getElementById('eventName').value.trim();
-  if (!name) { alert('ໃສ່ຊື່ງານກ່ອນ'); return; }
+  if (!name) { alert('ໃສ່ຊື່ອາລະບຳກ່ອນ'); return; }
 
   const btn = document.getElementById('createBtn');
   btn.disabled = true; btn.textContent = 'ກຳລັງສ້າງ...';
@@ -94,7 +94,7 @@ async function createWeddingEvent() {
   } catch (err) {
     alert('ຜິດພາດ: ' + err.message);
   } finally {
-    btn.disabled = false; btn.textContent = 'ສ້າງງານ + ສ້າງ QR';
+    btn.disabled = false; btn.textContent = 'ສ້າງອາລະບຳ + ສ້າງ QR';
   }
 }
 </script>

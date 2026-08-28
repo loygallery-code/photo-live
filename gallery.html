@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>ຮູບງານແຕ່ງ</title>
+<title>ອາລະບຳຮູບພາບ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -46,9 +46,9 @@
 <body>
 
 <header>
-  <div class="eyebrow">Wedding Photo Live</div>
-  <h1 id="eventTitle">ຮູບງານແຕ່ງ</h1>
-  <p>ຮູບຈະອັບເດດອັດຕະໂນມັດໃນລະຫວ່າງງານ — ແຕະຮູບເພື່ອໂຫຼດ</p>
+  <div class="eyebrow">ອາລະບຳສົດ</div>
+  <h1 id="eventTitle">ອາລະບຳຮູບພາບ</h1>
+  <p>ຮູບຈະອັບເດດອັດຕະໂນມັດ — ແຕະຮູບເພື່ອຂະຫຍາຍ ຫຼືໂຫຼດ</p>
 </header>
 
 <main>
@@ -88,7 +88,7 @@ async function init() {
     .from('events').select('id, name').eq('slug', eventSlug).single();
   if (error || !event) {
     document.getElementById('emptyState').style.display = 'block';
-    document.getElementById('emptyState').querySelector('div:last-child').textContent = 'ບໍ່ພົບງານນີ້';
+    document.getElementById('emptyState').querySelector('div:last-child').textContent = 'ບໍ່ພົບອາລະບຳນີ້';
     return;
   }
   eventId = event.id;

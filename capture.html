@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>ໂໝດຊ່າງພາບ — ຮູບງານແຕ່ງ</title>
+<title>ໂໝດຊ່າງພາບ — ອາລະບຳສົດ</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -61,16 +61,16 @@
 <body>
 
 <header>
-  <div class="eyebrow">Wedding Photo Live</div>
+  <div class="eyebrow">ອາລະບຳສົດ</div>
   <h1 id="eventTitle">ໂໝດຊ່າງພາບ</h1>
   <div class="counter">ຖ່າຍແລ້ວ <b id="countNum">0</b> ຮູບ</div>
 </header>
 
 <main>
   <div id="eventSetup">
-    <label for="eventSlug">ລະຫັດງານ (event slug)</label>
+    <label for="eventSlug">ລະຫັດອາລະບຳ</label>
     <input id="eventSlug" placeholder="ເຊັ່ນ: souk-noy-2026-abcde" autocomplete="off">
-    <div class="hint">ເອົາລະຫັດນີ້ຈາກໜ້າ admin.html ຫຼັງສ້າງງານ. ຄ້າງໄວ້ໃນເຄື່ອງນີ້ອັດຕະໂນມັດ.</div>
+    <div class="hint">ເອົາລະຫັດນີ້ຈາກໜ້າ admin.html ຫຼັງສ້າງອາລະບຳ. ຄ້າງໄວ້ໃນເຄື່ອງນີ້ອັດຕະໂນມັດ.</div>
   </div>
 
   <div class="capture-wrap">
@@ -114,7 +114,7 @@ async function getEventId(slug) {
   if (eventIdCache) return eventIdCache;
   const { data: event, error } = await sb
     .from('events').select('id').eq('slug', slug).single();
-  if (error || !event) throw new Error('ບໍ່ພົບງານນີ້ — ກວດລະຫັດງານ');
+  if (error || !event) throw new Error('ບໍ່ພົບອາລະບຳນີ້ — ກວດລະຫັດອາລະບຳ');
   eventIdCache = event.id;
   return eventIdCache;
 }
@@ -141,7 +141,7 @@ document.getElementById('cameraInput').addEventListener('change', async (e) => {
   if (!file) return;
 
   const slug = slugInput.value.trim();
-  if (!slug) { alert('ກະລຸນາໃສ່ລະຫັດງານກ່ອນ'); return; }
+  if (!slug) { alert('ກະລຸນາໃສ່ລະຫັດອາລະບຳກ່ອນ'); return; }
 
   emptyMsg.style.display = 'none';
   const tile = addTile(URL.createObjectURL(file), 'ກຳລັງອັບ...');
@@ -162,7 +162,7 @@ document.getElementById('galleryInput').addEventListener('change', async (e) => 
   if (files.length === 0) return;
 
   const slug = slugInput.value.trim();
-  if (!slug) { alert('ກະລຸນາໃສ່ລະຫັດງານກ່ອນ'); return; }
+  if (!slug) { alert('ກະລຸນາໃສ່ລະຫັດອາລະບຳກ່ອນ'); return; }
 
   emptyMsg.style.display = 'none';
   const progressEl = document.getElementById('progress');
