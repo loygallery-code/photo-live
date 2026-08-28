@@ -62,7 +62,7 @@ const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 const SITE_BASE = "https://photo-live.pages.dev";
 
 function slugify(name) {
-  const base = name.toLowerCase().replace(/[^a-z0-9ກ-ໝ]+/g, "-").replace(/(^-|-$)/g, "");
+  const base = name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
   const rand = Math.random().toString(36).slice(2, 7);
   return `${base || "event"}-${rand}`;
 }
