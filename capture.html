@@ -112,7 +112,7 @@ let eventIdCache = null;
 
 async function getEventId(slug) {
   if (eventIdCache) return eventIdCache;
-  const { data: event, error } = await supabase
+  const { data: event, error } = await sb
     .from('events').select('id').eq('slug', slug).single();
   if (error || !event) throw new Error('ບໍ່ພົບງານນີ້ — ກວດລະຫັດງານ');
   eventIdCache = event.id;
@@ -126,7 +126,7 @@ async function uploadOneFile(file, slug, tile) {
     .from('wedding-photos').upload(path, file, { contentType: file.type || 'image/jpeg' });
   if (upErr) throw upErr;
 
-  const { error: insErr } = await supabase
+  const { error: insErr } = await sb
     .from('photos').insert({ event_id: eventId, storage_path: path });
   if (insErr) throw insErr;
 
@@ -151,6 +151,7 @@ document.getElementById('cameraInput').addEventListener('change', async (e) => {
     console.error(err);
     tile.badge.textContent = 'ຜິດພາດ';
     tile.badge.className = 'badge err';
+    alert('ອັບຮູບບໍ່ໄດ້: ' + (err.message || err));
   }
 });
 
@@ -167,7 +168,7 @@ document.getElementById('galleryInput').addEventListener('change', async (e) => 
   const progressEl = document.getElementById('progress');
   progressEl.style.display = 'block';
 
-  let done = 0, failed = 0;
+  let done = 0, failed = 0, firstErrMsg = '';
   for (const file of files) {
     progressEl.textContent = `ກຳລັງອັບ ${done + failed + 1}/${files.length}...`;
     const tile = addTile(URL.createObjectURL(file), '...');
@@ -178,12 +179,14 @@ document.getElementById('galleryInput').addEventListener('change', async (e) => 
       console.error(err);
       tile.badge.textContent = 'ຜິດພາດ';
       tile.badge.className = 'badge err';
+      if (!firstErrMsg) firstErrMsg = err.message || String(err);
       failed++;
     }
   }
   progressEl.textContent = failed > 0
     ? `ສຳເລັດ ${done} ຮູບ, ຜິດພາດ ${failed} ຮູບ`
     : `✓ ອັບຄົບແລ້ວ ${done} ຮູບ`;
+  if (failed > 0) alert('ບາງຮູບອັບບໍ່ໄດ້: ' + firstErrMsg);
   setTimeout(() => { progressEl.style.display = 'none'; }, 4000);
 });
 
