@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Create New Album — Photo Live</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&family=Noto+Sans+Lao:wght@400;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
@@ -14,6 +14,10 @@
   body{margin:0;background:var(--paper);color:var(--ink);font-family:'Inter',sans-serif;}
   header{background:var(--ink);color:var(--paper);padding:30px 20px;text-align:center;}
   header h1{font-family:'Fraunces',serif;font-weight:600;font-size:24px;margin:0;}
+  .admin-nav{display:flex;justify-content:center;gap:20px;margin-top:14px;}
+  .admin-nav a{color:var(--paper);opacity:.85;font-size:13px;font-weight:600;text-decoration:none;
+    border-bottom:1px solid rgba(255,255,255,.35);padding-bottom:2px;}
+  .admin-nav a:hover{opacity:1;}
   main{max-width:520px;margin:0 auto;padding:26px 18px 60px;}
 
   .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:20px;}
@@ -45,15 +49,60 @@
 
   #printSheet{display:none;}
   @media print {
+    @page { size: A4; margin: 0; }
     body > *:not(#printSheet) { display:none !important; }
-    #printSheet{
-      display:block !important; width:100%; padding:20px; text-align:center;
-      font-family:'Inter',sans-serif;
+    #printSheet{ display:block !important; }
+
+    .print-page{
+      width:210mm; height:297mm; box-sizing:border-box; padding:14mm;
+      background:#0A192F;
+      background-image:
+        radial-gradient(ellipse at center, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.25) 100%);
+      page-break-after:always;
+      display:flex; align-items:center; justify-content:center;
+      -webkit-print-color-adjust:exact; print-color-adjust:exact;
     }
-    #printSheet h2{font-family:'Fraunces',serif;font-size:26px;margin-bottom:30px;}
-    .print-block{margin-bottom:40px; page-break-inside:avoid;}
-    .print-block h3{font-size:16px;margin-bottom:14px;}
-    .print-block > div{display:flex;justify-content:center;}
+    .print-page:last-child{page-break-after:auto;}
+
+    .print-frame{
+      position:relative; width:100%; height:100%;
+      border:2px solid #C5A059; border-radius:4px;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      gap:14mm; padding:16mm 12mm;
+      box-sizing:border-box;
+    }
+    .print-frame::before{
+      content:""; position:absolute; inset:6mm;
+      border:1px solid #C5A059; border-radius:2px; opacity:.55; pointer-events:none;
+    }
+    .print-corner{position:absolute; width:14mm; height:14mm; border:2px solid #C5A059;}
+    .print-corner.tl{top:2mm; left:2mm; border-right:none; border-bottom:none;}
+    .print-corner.tr{top:2mm; right:2mm; border-left:none; border-bottom:none;}
+    .print-corner.bl{bottom:2mm; left:2mm; border-right:none; border-top:none;}
+    .print-corner.br{bottom:2mm; right:2mm; border-left:none; border-top:none;}
+
+    .print-title{
+      font-family:'Noto Sans Lao','Fraunces',serif; font-weight:700; font-size:26px;
+      color:#C5A059; text-align:center; margin:0; line-height:1.5; letter-spacing:.02em;
+    }
+    .print-qr-box{
+      background:#FDF6E3; padding:10mm; border-radius:6px;
+      box-shadow:0 0 0 1px rgba(197,160,89,.4);
+    }
+    .print-qr-box canvas, .print-qr-box img{ display:block; }
+
+    .print-details{display:flex; gap:8mm; flex-wrap:wrap; justify-content:center;}
+    .print-details .detail-box{
+      border:1.5px solid #C5A059; border-radius:30px; padding:7px 20px;
+      color:#C5A059; font-family:'Noto Sans Lao','Inter',sans-serif; font-size:13px; font-weight:600;
+    }
+
+    .print-footer{
+      position:absolute; left:0; right:0; bottom:0;
+      background:linear-gradient(90deg,#8b98a3,#C5A059,#8b98a3);
+      color:#0A192F; text-align:center; font-weight:700; letter-spacing:.12em;
+      font-family:'Inter',sans-serif; font-size:13px; padding:10px 0;
+    }
   }
 
   #lockScreen{
@@ -76,12 +125,24 @@
   <div class="lock-err" id="lockErr"></div>
 </div>
 
-<header><h1>Create New Album</h1></header>
+<header>
+  <h1>Create New Album</h1>
+  <nav class="admin-nav">
+    <a href="capture.html">📷 Photographer Mode</a>
+    <a href="gallery.html">🖼️ View Album</a>
+  </nav>
+</header>
 
 <main id="mainContent" style="display:none">
   <div class="card">
     <label for="eventName">Album Name</label>
     <input id="eventName" placeholder="e.g. Souk & Noy's Wedding, Birthday Party, Beach Trip">
+
+    <label for="eventDate">Event Date <span style="font-weight:400">(optional — shown on printed QR)</span></label>
+    <input id="eventDate" placeholder="e.g. 15 October 2026">
+
+    <label for="eventLocation">Location <span style="font-weight:400">(optional — shown on printed QR)</span></label>
+    <input id="eventLocation" placeholder="e.g. Lao Plaza Hotel, Grand Ballroom">
 
     <label>Photo Quality (applies to every photo uploaded to this album)</label>
     <div class="quality-group" id="qualityGroup">
@@ -131,16 +192,31 @@
   </div>
 </main>
 
-<!-- ໜ້າພິມ A4 (ເບິ່ງແຕ່ຕອນພິມ) -->
+<!-- ໜ້າພິມ A4 (ເບິ່ງແຕ່ຕອນພິມ) — ແຍກ 2 ໜ້າ, ໜ້າລະ QR -->
 <div id="printSheet">
-  <h2 id="printTitle"></h2>
-  <div class="print-block">
-    <h3>Scan to Upload Photos (Photographer)</h3>
-    <div id="printQrCapture"></div>
+  <div class="print-page">
+    <div class="print-frame">
+      <div class="print-corner tl"></div>
+      <div class="print-corner tr"></div>
+      <div class="print-corner bl"></div>
+      <div class="print-corner br"></div>
+      <h2 class="print-title" id="printTitle1"></h2>
+      <div class="print-qr-box"><div id="printQrCapture"></div></div>
+      <div class="print-details" id="printDetails1"></div>
+      <div class="print-footer">SCAN TO UPLOAD PHOTOS</div>
+    </div>
   </div>
-  <div class="print-block">
-    <h3>Scan to View &amp; Download Photos (Guests)</h3>
-    <div id="printQrGallery"></div>
+  <div class="print-page">
+    <div class="print-frame">
+      <div class="print-corner tl"></div>
+      <div class="print-corner tr"></div>
+      <div class="print-corner bl"></div>
+      <div class="print-corner br"></div>
+      <h2 class="print-title" id="printTitle2"></h2>
+      <div class="print-qr-box"><div id="printQrGallery"></div></div>
+      <div class="print-details" id="printDetails2"></div>
+      <div class="print-footer">SCAN TO VIEW &amp; DOWNLOAD PHOTOS</div>
+    </div>
   </div>
 </div>
 
@@ -197,13 +273,17 @@ async function createAlbum() {
   if (!name) { alert('Please enter an album name'); return; }
 
   const photoQuality = getSelectedQuality();
+  const eventDate = document.getElementById('eventDate').value.trim();
+  const eventLocation = document.getElementById('eventLocation').value.trim();
   const btn = document.getElementById('createBtn');
   btn.disabled = true; btn.textContent = 'Creating...';
 
   try {
     const slug = slugify(name);
     const { data, error } = await sb
-      .from('events').insert({ slug, name, photo_quality: photoQuality }).select().single();
+      .from('events')
+      .insert({ slug, name, photo_quality: photoQuality, event_date: eventDate || null, event_location: eventLocation || null })
+      .select().single();
     if (error) throw error;
 
     const captureUrl = `${SITE_BASE}/capture.html?event=${data.slug}`;
@@ -218,12 +298,21 @@ async function createAlbum() {
     new QRCode(document.getElementById('qrCapture'), { text: captureUrl, width: 180, height: 180 });
     new QRCode(document.getElementById('qrGallery'), { text: galleryUrl, width: 180, height: 180 });
 
-    // ຄ່າສະບັບ print (A4) — ໃຊ້ QR ຂະໜາດໃຫຍ່ກວ່າ
-    document.getElementById('printTitle').textContent = name;
+    // ຄ່າສະບັບ print (A4) — ໜ້າໂຕນ Deep Navy + ຄຳ, ແຍກ 2 ໜ້າ
+    document.getElementById('printTitle1').textContent = name;
+    document.getElementById('printTitle2').textContent = name;
+
+    const detailsHtml = [
+      eventDate ? `<div class="detail-box">📅 ${eventDate}</div>` : '',
+      eventLocation ? `<div class="detail-box">📍 ${eventLocation}</div>` : '',
+    ].join('');
+    document.getElementById('printDetails1').innerHTML = detailsHtml;
+    document.getElementById('printDetails2').innerHTML = detailsHtml;
+
     document.getElementById('printQrCapture').innerHTML = '';
     document.getElementById('printQrGallery').innerHTML = '';
-    new QRCode(document.getElementById('printQrCapture'), { text: captureUrl, width: 260, height: 260 });
-    new QRCode(document.getElementById('printQrGallery'), { text: galleryUrl, width: 260, height: 260 });
+    new QRCode(document.getElementById('printQrCapture'), { text: captureUrl, width: 260, height: 260, colorDark: '#0A192F', colorLight: '#FDF6E3' });
+    new QRCode(document.getElementById('printQrGallery'), { text: galleryUrl, width: 260, height: 260, colorDark: '#0A192F', colorLight: '#FDF6E3' });
 
     const expiresAt = new Date(new Date(data.created_at).getTime() + 7 * 24 * 60 * 60 * 1000);
     document.getElementById('expiryNote').textContent =
