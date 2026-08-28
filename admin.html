@@ -22,6 +22,13 @@
   .btn{width:100%;background:var(--rose);color:#fff;border:none;padding:13px;border-radius:10px;font-size:15px;font-weight:600;cursor:pointer;}
   .btn:disabled{opacity:.5;}
 
+  .quality-group{display:flex;flex-direction:column;gap:10px;margin-bottom:14px;}
+  .quality-option{border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;cursor:pointer;position:relative;}
+  .quality-option input{position:absolute;top:14px;right:14px;width:auto;margin:0;}
+  .quality-option.selected{border-color:var(--rose);background:#fdf6f7;}
+  .quality-option .q-title{font-weight:600;font-size:14px;color:var(--ink);margin-bottom:2px;}
+  .quality-option .q-spec{font-size:12px;color:#8a8375;line-height:1.5;}
+
   .result{display:none;}
   .qr-block{text-align:center;margin-top:20px;padding-top:20px;border-top:1px solid var(--line);}
   .qr-block h3{font-family:'Fraunces',serif;font-size:16px;margin-bottom:4px;}
@@ -37,6 +44,26 @@
   <div class="card">
     <label for="eventName">Album Name</label>
     <input id="eventName" placeholder="e.g. Souk & Noy's Wedding, Birthday Party, Beach Trip">
+
+    <label>Photo Quality (applies to every photo uploaded to this album)</label>
+    <div class="quality-group" id="qualityGroup">
+      <label class="quality-option" data-value="social">
+        <input type="radio" name="quality" value="social">
+        <div class="q-title">Social Media Standard</div>
+        <div class="q-spec">1080px longest side · ~150–300 KB/photo · ~4,000–6,000 photos per 1GB</div>
+      </label>
+      <label class="quality-option selected" data-value="medium">
+        <input type="radio" name="quality" value="medium" checked>
+        <div class="q-title">Medium — General Printing</div>
+        <div class="q-spec">2048px longest side · ~500–900 KB/photo · ~1,200–2,000 photos per 1GB</div>
+      </label>
+      <label class="quality-option" data-value="high">
+        <input type="radio" name="quality" value="high">
+        <div class="q-title">High Resolution</div>
+        <div class="q-spec">4000px longest side · ~2–4 MB/photo · ~250–500 photos per 1GB</div>
+      </label>
+    </div>
+
     <button class="btn" id="createBtn" onclick="createAlbum()">Create Album + Generate QR</button>
   </div>
 
@@ -67,17 +94,32 @@ function slugify(name) {
   return `${base || "event"}-${rand}`;
 }
 
+// ໄຮໄລ້ບອກຄ່າ selected style ໃຫ້ quality option ທີ່ຖືກກົດ
+document.querySelectorAll('.quality-option').forEach(opt => {
+  opt.addEventListener('click', () => {
+    document.querySelectorAll('.quality-option').forEach(o => o.classList.remove('selected'));
+    opt.classList.add('selected');
+    opt.querySelector('input').checked = true;
+  });
+});
+
+function getSelectedQuality() {
+  const checked = document.querySelector('input[name="quality"]:checked');
+  return checked ? checked.value : 'medium';
+}
+
 async function createAlbum() {
   const name = document.getElementById('eventName').value.trim();
   if (!name) { alert('Please enter an album name'); return; }
 
+  const photoQuality = getSelectedQuality();
   const btn = document.getElementById('createBtn');
   btn.disabled = true; btn.textContent = 'Creating...';
 
   try {
     const slug = slugify(name);
     const { data, error } = await sb
-      .from('events').insert({ slug, name }).select().single();
+      .from('events').insert({ slug, name, photo_quality: photoQuality }).select().single();
     if (error) throw error;
 
     const captureUrl = `${SITE_BASE}/capture.html?event=${data.slug}`;

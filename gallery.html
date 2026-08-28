@@ -103,7 +103,7 @@ async function loadPhotos() {
     .select('id, storage_path, uploaded_at')
     .eq('event_id', eventId)
     .order('uploaded_at', { ascending: false })
-    .limit(300);
+    .limit(1000);
 
   if (error || !photos) return;
 
