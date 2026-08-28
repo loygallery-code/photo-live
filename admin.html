@@ -55,10 +55,12 @@
 
     .print-page{
       width:210mm; height:297mm; box-sizing:border-box; padding:14mm;
-      background:#0A192F;
+      background:#001F5B;
       background-image:
-        radial-gradient(ellipse at center, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.25) 100%);
+        radial-gradient(ellipse at center, rgba(255,255,255,0.05) 0%, rgba(0,0,0,0.35) 100%),
+        repeating-linear-gradient(45deg, rgba(255,255,255,.015) 0 2px, transparent 2px 4px);
       page-break-after:always;
+      position:relative;
       display:flex; align-items:center; justify-content:center;
       -webkit-print-color-adjust:exact; print-color-adjust:exact;
     }
@@ -66,49 +68,55 @@
 
     .print-frame{
       position:relative; width:100%; height:100%;
-      border:2px solid #C5A059; border-radius:4px;
+      border:2px solid #C5A059; border-radius:2px;
       display:flex; flex-direction:column; align-items:center; justify-content:center;
-      gap:14mm; padding:16mm 12mm;
+      gap:12mm; padding:20mm 16mm;
       box-sizing:border-box;
     }
     .print-frame::before{
       content:""; position:absolute; inset:6mm;
-      border:1px solid #C5A059; border-radius:2px; opacity:.55; pointer-events:none;
+      border:1px solid #C5A059; border-radius:1px; opacity:.55; pointer-events:none;
     }
-    .print-corner{position:absolute; width:14mm; height:14mm; border:2px solid #C5A059;}
-    .print-corner.tl{top:2mm; left:2mm; border-right:none; border-bottom:none;}
-    .print-corner.tr{top:2mm; right:2mm; border-left:none; border-bottom:none;}
-    .print-corner.bl{bottom:2mm; left:2mm; border-right:none; border-top:none;}
-    .print-corner.br{bottom:2mm; right:2mm; border-left:none; border-top:none;}
+
+    /* ມຸມແບບ Art Deco — ຊ້າຍເທິງ ແລະ ຂວາລຸ່ມ (ສະໝິງກັນຂວາງ) */
+    .deco-corner{position:absolute; width:32mm; height:32mm; pointer-events:none;}
+    .deco-corner.tl{top:0; left:0;}
+    .deco-corner.br{bottom:0; right:0; transform:rotate(180deg);}
+    .deco-corner svg{width:100%; height:100%; display:block;}
 
     .print-title{
-      font-family:'Phetsarath','Fraunces',serif; font-weight:700; font-size:26px;
+      font-family:'Phetsarath','Fraunces',serif; font-weight:700; font-size:25px;
       color:#C5A059; text-align:center; margin:0; line-height:1.5; letter-spacing:.02em;
     }
     .print-callout{
-      font-family:'Phetsarath','Inter',sans-serif; font-weight:700; font-size:20px;
-      color:#FDF6E3; text-align:center; margin:0; line-height:1.4;
+      font-family:'Phetsarath','Inter',sans-serif; font-weight:700; font-size:19px;
+      color:#C5A059; text-align:center; margin:0; line-height:1.4;
     }
     .print-arrow{
-      font-size:34px; color:#C5A059; line-height:1; margin:-6mm 0;
+      font-size:32px; color:#C5A059; line-height:1; margin:-5mm 0;
     }
     .print-qr-box{
-      background:#FDF6E3; padding:10mm; border-radius:6px;
-      box-shadow:0 0 0 1px rgba(197,160,89,.4);
+      background:#FDF6E3; padding:10mm; border-radius:4px;
+      box-shadow:0 0 0 1px rgba(197,160,89,.5);
     }
     .print-qr-box canvas, .print-qr-box img{ display:block; }
 
-    .print-details{display:flex; gap:8mm; flex-wrap:wrap; justify-content:center;}
+    .print-details{
+      position:absolute; left:14mm; right:14mm; bottom:20mm;
+      display:flex; justify-content:space-between; align-items:flex-end; gap:6mm;
+    }
     .print-details .detail-box{
-      border:1.5px solid #C5A059; border-radius:30px; padding:7px 20px;
-      color:#C5A059; font-family:'Phetsarath','Inter',sans-serif; font-size:13px; font-weight:600;
+      background:#FDF6E3; border-radius:8px; padding:8px 16px;
+      color:#001F5B; font-family:'Phetsarath','Inter',sans-serif; font-size:12px; font-weight:700;
+      box-shadow:0 0 0 1px rgba(197,160,89,.5);
+      display:flex; align-items:center; gap:6px;
     }
 
     .print-footer{
       position:absolute; left:0; right:0; bottom:0;
-      background:linear-gradient(90deg,#8b98a3,#C5A059,#8b98a3);
-      color:#0A192F; text-align:center; font-weight:700; letter-spacing:.12em;
-      font-family:'Inter','Phetsarath',sans-serif; font-size:13px; padding:10px 0;
+      background:linear-gradient(180deg,#D4B15F,#B59410 55%,#8f7108);
+      color:#001F5B; text-align:center; font-weight:700; letter-spacing:.12em;
+      font-family:'Inter','Phetsarath',sans-serif; font-size:13px; padding:11px 0;
     }
   }
 
@@ -203,10 +211,30 @@
 <div id="printSheet">
   <div class="print-page">
     <div class="print-frame">
-      <div class="print-corner tl"></div>
-      <div class="print-corner tr"></div>
-      <div class="print-corner bl"></div>
-      <div class="print-corner br"></div>
+      <div class="deco-corner tl">
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 42 A42 42 0 0 1 42 0" stroke="#C5A059" stroke-width="2"/>
+          <path d="M0 74 A74 74 0 0 1 74 0" stroke="#C5A059" stroke-width="1.3" opacity="0.65"/>
+          <path d="M0 106 A106 106 0 0 1 106 0" stroke="#C5A059" stroke-width="1" opacity="0.35"/>
+          <line x1="0" y1="0" x2="50" y2="0" stroke="#C5A059" stroke-width="2"/>
+          <line x1="0" y1="0" x2="0" y2="50" stroke="#C5A059" stroke-width="2"/>
+          <line x1="16" y1="0" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
+          <line x1="0" y1="16" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
+          <circle cx="22" cy="22" r="2.6" fill="#C5A059"/>
+        </svg>
+      </div>
+      <div class="deco-corner br">
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 42 A42 42 0 0 1 42 0" stroke="#C5A059" stroke-width="2"/>
+          <path d="M0 74 A74 74 0 0 1 74 0" stroke="#C5A059" stroke-width="1.3" opacity="0.65"/>
+          <path d="M0 106 A106 106 0 0 1 106 0" stroke="#C5A059" stroke-width="1" opacity="0.35"/>
+          <line x1="0" y1="0" x2="50" y2="0" stroke="#C5A059" stroke-width="2"/>
+          <line x1="0" y1="0" x2="0" y2="50" stroke="#C5A059" stroke-width="2"/>
+          <line x1="16" y1="0" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
+          <line x1="0" y1="16" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
+          <circle cx="22" cy="22" r="2.6" fill="#C5A059"/>
+        </svg>
+      </div>
       <h2 class="print-title" id="printTitle1"></h2>
       <div class="print-qr-box"><div id="printQrCapture"></div></div>
       <div class="print-details" id="printDetails1"></div>
@@ -215,10 +243,30 @@
   </div>
   <div class="print-page">
     <div class="print-frame">
-      <div class="print-corner tl"></div>
-      <div class="print-corner tr"></div>
-      <div class="print-corner bl"></div>
-      <div class="print-corner br"></div>
+      <div class="deco-corner tl">
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 42 A42 42 0 0 1 42 0" stroke="#C5A059" stroke-width="2"/>
+          <path d="M0 74 A74 74 0 0 1 74 0" stroke="#C5A059" stroke-width="1.3" opacity="0.65"/>
+          <path d="M0 106 A106 106 0 0 1 106 0" stroke="#C5A059" stroke-width="1" opacity="0.35"/>
+          <line x1="0" y1="0" x2="50" y2="0" stroke="#C5A059" stroke-width="2"/>
+          <line x1="0" y1="0" x2="0" y2="50" stroke="#C5A059" stroke-width="2"/>
+          <line x1="16" y1="0" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
+          <line x1="0" y1="16" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
+          <circle cx="22" cy="22" r="2.6" fill="#C5A059"/>
+        </svg>
+      </div>
+      <div class="deco-corner br">
+        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M0 42 A42 42 0 0 1 42 0" stroke="#C5A059" stroke-width="2"/>
+          <path d="M0 74 A74 74 0 0 1 74 0" stroke="#C5A059" stroke-width="1.3" opacity="0.65"/>
+          <path d="M0 106 A106 106 0 0 1 106 0" stroke="#C5A059" stroke-width="1" opacity="0.35"/>
+          <line x1="0" y1="0" x2="50" y2="0" stroke="#C5A059" stroke-width="2"/>
+          <line x1="0" y1="0" x2="0" y2="50" stroke="#C5A059" stroke-width="2"/>
+          <line x1="16" y1="0" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
+          <line x1="0" y1="16" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
+          <circle cx="22" cy="22" r="2.6" fill="#C5A059"/>
+        </svg>
+      </div>
       <h2 class="print-title" id="printTitle2"></h2>
       <div class="print-callout">ຮູບໃນງານສາມາດດາວໂຫຼດໄດ້ທີ່ນີ້</div>
       <div class="print-arrow">↓</div>
