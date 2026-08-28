@@ -95,7 +95,7 @@
 <script>
 const SUPABASE_URL = "https://uaqupfpuvcsmomlezcxc.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhcXVwZnB1dmNzbW9tbGV6Y3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjkwNTIsImV4cCI6MjEwMzMwNTA1Mn0.3_2sp3Icqqg5VAJ5YiJdM0NCJ6IFldIwwMZGx6y_gXg";
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const params = new URLSearchParams(location.search);
 const slugInput = document.getElementById('eventSlug');
@@ -122,7 +122,7 @@ async function getEventId(slug) {
 async function uploadOneFile(file, slug, tile) {
   const eventId = await getEventId(slug);
   const path = `${slug}/${crypto.randomUUID()}.jpg`;
-  const { error: upErr } = await supabase.storage
+  const { error: upErr } = await sb.storage
     .from('wedding-photos').upload(path, file, { contentType: file.type || 'image/jpeg' });
   if (upErr) throw upErr;
 
