@@ -120,8 +120,12 @@ const QUALITY_PRESETS = {
 async function getEventInfo(slug) {
   if (eventIdCache) return { id: eventIdCache, quality: eventQualityCache };
   const { data: event, error } = await sb
-    .from('events').select('id, photo_quality').eq('slug', slug).single();
+    .from('events').select('id, photo_quality, created_at').eq('slug', slug).single();
   if (error || !event) throw new Error('Album not found — check the album code');
+
+  const expiresAt = new Date(event.created_at).getTime() + 7 * 24 * 60 * 60 * 1000;
+  if (Date.now() > expiresAt) throw new Error('This album has expired (albums stay active for 7 days after creation)');
+
   eventIdCache = event.id;
   eventQualityCache = event.photo_quality || 'medium';
   return { id: eventIdCache, quality: eventQualityCache };

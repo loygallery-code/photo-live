@@ -34,13 +34,51 @@
   .qr-block h3{font-family:'Fraunces',serif;font-size:16px;margin-bottom:4px;}
   .qr-block p{font-size:12px;color:#8a8375;word-break:break-all;margin-bottom:12px;}
   .qr-canvas{display:inline-block;padding:12px;background:#fff;border:1px solid var(--line);border-radius:10px;}
+
+  .qr-actions{display:flex;gap:8px;justify-content:center;margin-top:12px;flex-wrap:wrap;}
+  .mini-btn{background:var(--paper);border:1px solid var(--line);color:var(--ink);padding:8px 12px;
+    border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;}
+  .mini-btn:active{background:var(--line);}
+
+  .expiry-note{text-align:center;font-size:12px;color:#a39c8d;margin-top:18px;}
+  .print-btn{margin-top:14px;background:var(--ink);}
+
+  #printSheet{display:none;}
+  @media print {
+    body > *:not(#printSheet) { display:none !important; }
+    #printSheet{
+      display:block !important; width:100%; padding:20px; text-align:center;
+      font-family:'Inter',sans-serif;
+    }
+    #printSheet h2{font-family:'Fraunces',serif;font-size:26px;margin-bottom:30px;}
+    .print-block{margin-bottom:40px; page-break-inside:avoid;}
+    .print-block h3{font-size:16px;margin-bottom:14px;}
+    .print-block > div{display:flex;justify-content:center;}
+  }
+
+  #lockScreen{
+    position:fixed;inset:0;background:var(--ink);color:var(--paper);
+    display:flex;align-items:center;justify-content:center;flex-direction:column;
+    padding:24px;text-align:center;z-index:100;
+  }
+  #lockScreen h2{font-family:'Fraunces',serif;font-weight:600;font-size:22px;margin-bottom:18px;}
+  #lockScreen input{width:220px;text-align:center;margin-bottom:12px;}
+  #lockScreen .btn{width:220px;}
+  #lockScreen .lock-err{color:#e0a0a0;font-size:13px;min-height:18px;margin-top:8px;}
 </style>
 </head>
 <body>
 
+<div id="lockScreen">
+  <h2>🔒 Admin Access</h2>
+  <input type="password" id="adminPassword" placeholder="Enter admin password" autocomplete="off">
+  <button class="btn" onclick="checkPassword()">Unlock</button>
+  <div class="lock-err" id="lockErr"></div>
+</div>
+
 <header><h1>Create New Album</h1></header>
 
-<main>
+<main id="mainContent" style="display:none">
   <div class="card">
     <label for="eventName">Album Name</label>
     <input id="eventName" placeholder="e.g. Souk & Noy's Wedding, Birthday Party, Beach Trip">
@@ -72,16 +110,62 @@
       <h3>QR for Photographer</h3>
       <p id="captureUrl"></p>
       <div class="qr-canvas" id="qrCapture"></div>
+      <div class="qr-actions">
+        <button class="mini-btn" onclick="downloadQR('qrCapture','qr-photographer.png')">📥 Save image</button>
+        <button class="mini-btn" onclick="shareQR('qrCapture','qr-photographer.png', document.getElementById('captureUrl').textContent)">📤 Share</button>
+        <button class="mini-btn" onclick="copyLink('captureUrl')">🔗 Copy link</button>
+      </div>
     </div>
     <div class="qr-block">
       <h3>QR for Guests (view & download)</h3>
       <p id="galleryUrl"></p>
       <div class="qr-canvas" id="qrGallery"></div>
+      <div class="qr-actions">
+        <button class="mini-btn" onclick="downloadQR('qrGallery','qr-guests.png')">📥 Save image</button>
+        <button class="mini-btn" onclick="shareQR('qrGallery','qr-guests.png', document.getElementById('galleryUrl').textContent)">📤 Share</button>
+        <button class="mini-btn" onclick="copyLink('galleryUrl')">🔗 Copy link</button>
+      </div>
     </div>
+    <div class="expiry-note" id="expiryNote"></div>
+    <button class="btn print-btn" onclick="window.print()">🖨️ Print (A4)</button>
   </div>
 </main>
 
+<!-- ໜ້າພິມ A4 (ເບິ່ງແຕ່ຕອນພິມ) -->
+<div id="printSheet">
+  <h2 id="printTitle"></h2>
+  <div class="print-block">
+    <h3>Scan to Upload Photos (Photographer)</h3>
+    <div id="printQrCapture"></div>
+  </div>
+  <div class="print-block">
+    <h3>Scan to View &amp; Download Photos (Guests)</h3>
+    <div id="printQrGallery"></div>
+  </div>
+</div>
+
 <script>
+// ປ່ຽນລະຫັດຜ່ານນີ້ໃຫ້ເປັນລະຫັດຂອງເຈົ້າເອງກ່ອນນຳໃຊ້ຈິງ
+const ADMIN_PASSWORD = "changeme123";
+
+function checkPassword() {
+  const val = document.getElementById('adminPassword').value;
+  if (val === ADMIN_PASSWORD) {
+    localStorage.setItem('admin_unlocked', 'yes');
+    document.getElementById('lockScreen').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+  } else {
+    document.getElementById('lockErr').textContent = 'Incorrect password';
+  }
+}
+document.getElementById('adminPassword').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') checkPassword();
+});
+if (localStorage.getItem('admin_unlocked') === 'yes') {
+  document.getElementById('lockScreen').style.display = 'none';
+  document.getElementById('mainContent').style.display = 'block';
+}
+
 const SUPABASE_URL = "https://uaqupfpuvcsmomlezcxc.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVhcXVwZnB1dmNzbW9tbGV6Y3hjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc3MjkwNTIsImV4cCI6MjEwMzMwNTA1Mn0.3_2sp3Icqqg5VAJ5YiJdM0NCJ6IFldIwwMZGx6y_gXg";
 const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -133,11 +217,57 @@ async function createAlbum() {
     document.getElementById('qrGallery').innerHTML = '';
     new QRCode(document.getElementById('qrCapture'), { text: captureUrl, width: 180, height: 180 });
     new QRCode(document.getElementById('qrGallery'), { text: galleryUrl, width: 180, height: 180 });
+
+    // ຄ່າສະບັບ print (A4) — ໃຊ້ QR ຂະໜາດໃຫຍ່ກວ່າ
+    document.getElementById('printTitle').textContent = name;
+    document.getElementById('printQrCapture').innerHTML = '';
+    document.getElementById('printQrGallery').innerHTML = '';
+    new QRCode(document.getElementById('printQrCapture'), { text: captureUrl, width: 260, height: 260 });
+    new QRCode(document.getElementById('printQrGallery'), { text: galleryUrl, width: 260, height: 260 });
+
+    const expiresAt = new Date(new Date(data.created_at).getTime() + 7 * 24 * 60 * 60 * 1000);
+    document.getElementById('expiryNote').textContent =
+      `This album's links are active for 7 days — until ${expiresAt.toLocaleDateString()}.`;
   } catch (err) {
     alert('Error: ' + err.message);
   } finally {
     btn.disabled = false; btn.textContent = 'Create Album + Generate QR';
   }
+}
+
+function downloadQR(containerId, filename) {
+  const canvas = document.querySelector(`#${containerId} canvas`);
+  if (!canvas) { alert('QR image not ready yet'); return; }
+  const link = document.createElement('a');
+  link.download = filename;
+  link.href = canvas.toDataURL('image/png');
+  link.click();
+}
+
+async function shareQR(containerId, filename, url) {
+  const canvas = document.querySelector(`#${containerId} canvas`);
+  if (!canvas) { alert('QR image not ready yet'); return; }
+
+  canvas.toBlob(async (blob) => {
+    const file = new File([blob], filename, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], text: url });
+        return;
+      } catch (e) { /* user cancelled or share failed — fall back below */ }
+    }
+    // ຖ້າ browser ບໍ່ຮອງຮັບການແຊຣ໌ໄຟລ໌, ໂຫຼດຮູບລົງແທນ
+    downloadQR(containerId, filename);
+  }, 'image/png');
+}
+
+function copyLink(elId) {
+  const text = document.getElementById(elId).textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    alert('Link copied!');
+  }).catch(() => {
+    alert(text); // fallback: show it so they can copy manually
+  });
 }
 </script>
 </body>

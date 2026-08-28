@@ -85,12 +85,22 @@ if (!eventSlug) {
 
 async function init() {
   const { data: event, error } = await sb
-    .from('events').select('id, name').eq('slug', eventSlug).single();
+    .from('events').select('id, name, created_at').eq('slug', eventSlug).single();
   if (error || !event) {
     document.getElementById('emptyState').style.display = 'block';
     document.getElementById('emptyState').querySelector('div:last-child').textContent = 'Album not found';
     return;
   }
+
+  const expiresAt = new Date(event.created_at).getTime() + 7 * 24 * 60 * 60 * 1000;
+  if (Date.now() > expiresAt) {
+    document.getElementById('emptyState').style.display = 'block';
+    document.getElementById('emptyState').querySelector('.icon').textContent = '⏰';
+    document.getElementById('emptyState').querySelector('div:last-child').textContent =
+      'This album has expired (albums stay active for 7 days after creation)';
+    return;
+  }
+
   eventId = event.id;
   document.getElementById('eventTitle').textContent = event.name;
   await loadPhotos();
