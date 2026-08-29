@@ -64,7 +64,7 @@
       display:flex; align-items:center; justify-content:center;
       -webkit-print-color-adjust:exact; print-color-adjust:exact;
     }
-    .print-page:last-child{page-break-after:auto;}
+    .print-page.last-page{page-break-after:auto;}
 
     .print-frame{
       position:relative; width:100%; height:100%;
@@ -159,6 +159,9 @@
     <label for="eventLocation">Location <span style="font-weight:400">(optional — shown on printed QR)</span></label>
     <input id="eventLocation" placeholder="e.g. Lao Plaza Hotel, Grand Ballroom">
 
+    <label for="numPhotographers">Number of Photographers <span style="font-weight:400">(each gets their own QR — all upload to the same album, works with multiple cameras too)</span></label>
+    <input id="numPhotographers" type="number" min="1" max="10" value="1">
+
     <label>Photo Quality (applies to every photo uploaded to this album)</label>
     <div class="quality-group" id="qualityGroup">
       <label class="quality-option" data-value="social">
@@ -182,16 +185,7 @@
   </div>
 
   <div class="card result" id="resultCard">
-    <div class="qr-block">
-      <h3>QR for Photographer</h3>
-      <p id="captureUrl"></p>
-      <div class="qr-canvas" id="qrCapture"></div>
-      <div class="qr-actions">
-        <button class="mini-btn" onclick="downloadQR('qrCapture','qr-photographer.png')">📥 Save image</button>
-        <button class="mini-btn" onclick="shareQR('qrCapture','qr-photographer.png', document.getElementById('captureUrl').textContent)">📤 Share</button>
-        <button class="mini-btn" onclick="copyLink('captureUrl')">🔗 Copy link</button>
-      </div>
-    </div>
+    <div id="photographerQrList"></div>
     <div class="qr-block">
       <h3>QR for Guests (view & download)</h3>
       <p id="galleryUrl"></p>
@@ -207,41 +201,10 @@
   </div>
 </main>
 
-<!-- ໜ້າພິມ A4 (ເບິ່ງແຕ່ຕອນພິມ) — ແຍກ 2 ໜ້າ, ໜ້າລະ QR -->
+<!-- ໜ້າພິມ A4 (ເບິ່ງແຕ່ຕອນພິມ) — ຊ່າງພາບ (ອາດມີຫຼາຍໜ້າ) + ແຂກ 1 ໜ້າ -->
 <div id="printSheet">
-  <div class="print-page">
-    <div class="print-frame">
-      <div class="deco-corner tl">
-        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0 42 A42 42 0 0 1 42 0" stroke="#C5A059" stroke-width="2"/>
-          <path d="M0 74 A74 74 0 0 1 74 0" stroke="#C5A059" stroke-width="1.3" opacity="0.65"/>
-          <path d="M0 106 A106 106 0 0 1 106 0" stroke="#C5A059" stroke-width="1" opacity="0.35"/>
-          <line x1="0" y1="0" x2="50" y2="0" stroke="#C5A059" stroke-width="2"/>
-          <line x1="0" y1="0" x2="0" y2="50" stroke="#C5A059" stroke-width="2"/>
-          <line x1="16" y1="0" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
-          <line x1="0" y1="16" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
-          <circle cx="22" cy="22" r="2.6" fill="#C5A059"/>
-        </svg>
-      </div>
-      <div class="deco-corner br">
-        <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M0 42 A42 42 0 0 1 42 0" stroke="#C5A059" stroke-width="2"/>
-          <path d="M0 74 A74 74 0 0 1 74 0" stroke="#C5A059" stroke-width="1.3" opacity="0.65"/>
-          <path d="M0 106 A106 106 0 0 1 106 0" stroke="#C5A059" stroke-width="1" opacity="0.35"/>
-          <line x1="0" y1="0" x2="50" y2="0" stroke="#C5A059" stroke-width="2"/>
-          <line x1="0" y1="0" x2="0" y2="50" stroke="#C5A059" stroke-width="2"/>
-          <line x1="16" y1="0" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
-          <line x1="0" y1="16" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
-          <circle cx="22" cy="22" r="2.6" fill="#C5A059"/>
-        </svg>
-      </div>
-      <h2 class="print-title" id="printTitle1"></h2>
-      <div class="print-qr-box"><div id="printQrCapture"></div></div>
-      <div class="print-details" id="printDetails1"></div>
-      <div class="print-footer">SCAN TO UPLOAD PHOTOS</div>
-    </div>
-  </div>
-  <div class="print-page">
+  <div id="printPhotographerPages"></div>
+  <div class="print-page last-page">
     <div class="print-frame">
       <div class="deco-corner tl">
         <svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -325,6 +288,17 @@ function getSelectedQuality() {
   return checked ? checked.value : 'medium';
 }
 
+const DECO_SVG = `<svg viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M0 42 A42 42 0 0 1 42 0" stroke="#C5A059" stroke-width="2"/>
+  <path d="M0 74 A74 74 0 0 1 74 0" stroke="#C5A059" stroke-width="1.3" opacity="0.65"/>
+  <path d="M0 106 A106 106 0 0 1 106 0" stroke="#C5A059" stroke-width="1" opacity="0.35"/>
+  <line x1="0" y1="0" x2="50" y2="0" stroke="#C5A059" stroke-width="2"/>
+  <line x1="0" y1="0" x2="0" y2="50" stroke="#C5A059" stroke-width="2"/>
+  <line x1="16" y1="0" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
+  <line x1="0" y1="16" x2="16" y2="16" stroke="#C5A059" stroke-width="1"/>
+  <circle cx="22" cy="22" r="2.6" fill="#C5A059"/>
+</svg>`;
+
 async function createAlbum() {
   const name = document.getElementById('eventName').value.trim();
   if (!name) { alert('Please enter an album name'); return; }
@@ -332,6 +306,7 @@ async function createAlbum() {
   const photoQuality = getSelectedQuality();
   const eventDate = document.getElementById('eventDate').value.trim();
   const eventLocation = document.getElementById('eventLocation').value.trim();
+  const numPhotographers = Math.max(1, Math.min(10, parseInt(document.getElementById('numPhotographers').value) || 1));
   const btn = document.getElementById('createBtn');
   btn.disabled = true; btn.textContent = 'Creating...';
 
@@ -346,29 +321,64 @@ async function createAlbum() {
     const captureUrl = `${SITE_BASE}/capture.html?event=${data.slug}`;
     const galleryUrl = `${SITE_BASE}/gallery.html?event=${data.slug}`;
 
-    document.getElementById('captureUrl').textContent = captureUrl;
     document.getElementById('galleryUrl').textContent = galleryUrl;
     document.getElementById('resultCard').style.display = 'block';
 
-    document.getElementById('qrCapture').innerHTML = '';
+    // ສ້າງ QR ຊ່າງພາບ N ຊຸດ (ທຸກຊຸດໃຊ້ລິ້ງດຽວກັນ — ອາລະບຳດຽວກັນ, ຮອງຮັບຫຼາຍຄົນ/ຫຼາຍກ້ອງ)
+    const listEl = document.getElementById('photographerQrList');
+    listEl.innerHTML = '';
+    for (let i = 1; i <= numPhotographers; i++) {
+      const label = numPhotographers > 1 ? `QR for Photographer ${i}` : 'QR for Photographer';
+      const block = document.createElement('div');
+      block.className = 'qr-block';
+      block.innerHTML = `
+        <h3>${label}</h3>
+        <p>${captureUrl}</p>
+        <div class="qr-canvas" id="qrCapture_${i}"></div>
+        <div class="qr-actions">
+          <button class="mini-btn" onclick="downloadQR('qrCapture_${i}','qr-photographer-${i}.png')">📥 Save image</button>
+          <button class="mini-btn" onclick="shareQR('qrCapture_${i}','qr-photographer-${i}.png', '${captureUrl}')">📤 Share</button>
+          <button class="mini-btn" onclick="copyLink('captureUrl_${i}')">🔗 Copy link</button>
+        </div>
+        <span id="captureUrl_${i}" style="display:none">${captureUrl}</span>
+      `;
+      listEl.appendChild(block);
+      new QRCode(document.getElementById(`qrCapture_${i}`), { text: captureUrl, width: 180, height: 180 });
+    }
+
     document.getElementById('qrGallery').innerHTML = '';
-    new QRCode(document.getElementById('qrCapture'), { text: captureUrl, width: 180, height: 180 });
     new QRCode(document.getElementById('qrGallery'), { text: galleryUrl, width: 180, height: 180 });
 
-    // ຄ່າສະບັບ print (A4) — ໜ້າໂຕນ Deep Navy + ຄຳ, ແຍກ 2 ໜ້າ
-    document.getElementById('printTitle1').textContent = name;
-    document.getElementById('printTitle2').textContent = name;
-
+    // ຄ່າສະບັບ print (A4) — ໜ້າໂຕນ Deep Navy + ຄຳ
     const detailsHtml = [
       eventDate ? `<div class="detail-box">📅 ${eventDate}</div>` : '',
       eventLocation ? `<div class="detail-box">📍 ${eventLocation}</div>` : '',
     ].join('');
-    document.getElementById('printDetails1').innerHTML = detailsHtml;
-    document.getElementById('printDetails2').innerHTML = detailsHtml;
 
-    document.getElementById('printQrCapture').innerHTML = '';
+    // ໜ້າພິມຂອງຊ່າງພາບ — ໜຶ່ງໜ້າຕໍ່ຄົນ
+    const printPagesEl = document.getElementById('printPhotographerPages');
+    printPagesEl.innerHTML = '';
+    for (let i = 1; i <= numPhotographers; i++) {
+      const titleText = numPhotographers > 1 ? `${name} — Photographer ${i}` : name;
+      const page = document.createElement('div');
+      page.className = 'print-page';
+      page.innerHTML = `
+        <div class="print-frame">
+          <div class="deco-corner tl">${DECO_SVG}</div>
+          <div class="deco-corner br">${DECO_SVG}</div>
+          <h2 class="print-title">${titleText}</h2>
+          <div class="print-qr-box"><div id="printQrCapture_${i}"></div></div>
+          <div class="print-details">${detailsHtml}</div>
+          <div class="print-footer">SCAN TO UPLOAD PHOTOS</div>
+        </div>
+      `;
+      printPagesEl.appendChild(page);
+      new QRCode(document.getElementById(`printQrCapture_${i}`), { text: captureUrl, width: 260, height: 260, colorDark: '#0A192F', colorLight: '#FDF6E3' });
+    }
+
+    document.getElementById('printTitle2').textContent = name;
+    document.getElementById('printDetails2').innerHTML = detailsHtml;
     document.getElementById('printQrGallery').innerHTML = '';
-    new QRCode(document.getElementById('printQrCapture'), { text: captureUrl, width: 260, height: 260, colorDark: '#0A192F', colorLight: '#FDF6E3' });
     new QRCode(document.getElementById('printQrGallery'), { text: galleryUrl, width: 260, height: 260, colorDark: '#0A192F', colorLight: '#FDF6E3' });
 
     const expiresAt = new Date(new Date(data.created_at).getTime() + 7 * 24 * 60 * 60 * 1000);
